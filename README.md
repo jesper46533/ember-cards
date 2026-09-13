@@ -69,6 +69,25 @@ npm test         # 引擎测试
 
 引擎在 `src/engine/game.ts`，是纯函数状态机（`newGame / pick / done / skip / stop / challenge / setDecree / acceptDecree`），不依赖 React，可以直接拿去接别的界面或者接一个 AI 玩家。抽牌走 `crypto.getRandomValues`，不用 `Math.random`。
 
+## 装到手机（PWA）
+
+构建产物 `dist/` 是个 PWA：带 manifest、图标和离线缓存，安卓 Chrome 打开一次就能"添加到主屏幕"，桌面图标、全屏启动、断网照玩，体验接近原生 App，不用上架、不用签名证书、不产生 APK 文件。
+
+```bash
+npm run build
+# 把 dist/ 丢到任意 HTTPS 静态托管（GitHub Pages / Cloudflare Pages / Netlify 都行）
+```
+
+手机安装步骤：
+
+1. 安卓 Chrome 打开页面（先在线加载一次，让 Service Worker 把外壳缓存下来）。
+2. 菜单 → **添加到主屏幕** → 确认。
+3. 桌面出现「余温」图标，点开即全屏，断网也能玩；本地存的牌局和自定义牌都还在。
+
+> iOS Safari 也能「添加到主屏幕」，但离线缓存策略由 Apple 接管，体验比安卓弱一些。
+
+> 如果你**一定要一份可下载安装的 `.apk`**：把已部署的站点地址贴进 [PWABuilder](https://www.pwabuilder.com/)，它能在云端把同一个 PWA 打包成签名 APK 下载，本机不需要 Java / Android SDK。
+
 ## 让 AI 上桌（MCP）
 
 `worker/` 里是同一个引擎的 Cloudflare Worker 版：一桌一个 Durable Object，暴露成 MCP 工具
