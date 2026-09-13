@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Table from './components/Table.tsx'
+import CardLibrary from './components/CardLibrary.tsx'
 import { DEFAULT_DECK } from './engine/defaultDeck.ts'
-import { mergeDecks, parseCustomCards } from './engine/cards.ts'
+import { mergeDecks, parseCustomCards, type Deck } from './engine/cards.ts'
 import {
   acceptDecree,
   challenge,
@@ -26,13 +27,15 @@ export interface Settings {
   wildEnabled: boolean
   // 安全词：你们自己的那个词。按下去就是真停，不讨价。
   safeword: string
-  // 我们的牌：一行一张「档位 类型 文案」，混进抽牌池；分享=把这段文本发给对方粘贴。
+  // 旧字段：以前「我们的牌」文本框里的内容，现在只在首次迁移进牌库副本时读一次。
   customCardsText: string
 }
 
 interface Persisted {
   settings: Settings
   game: GameState | null
+  // 牌库全量副本（默认库 + 玩家增删改的结果），存在本机，编辑立即进抽牌池。
+  deck: Deck
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -42,35 +45,48 @@ const DEFAULT_SETTINGS: Settings = {
   customCardsText: '',
 }
 
+function isDeck(x: unknown): x is Deck {
+  const d = x as Deck | null
+  return Boolean(d && Array.isArray(d.cards) && d.tierNames && typeof d.tierNames === 'object')
+}
+
 function load(): Persisted {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return { settings: DEFAULT_SETTINGS, game: null }
+    if (!raw) return { settings: DEFAULT_SETTINGS, game: null, deck: DEFAULT_DECK }
     const parsed = JSON.parse(raw) as Partial<Persisted>
+    const settings: Settings = {
+      ...DEFAULT_SETTINGS,
+      ...(parsed.settings ?? {}),
+      names: { ...DEFAULT_SETTINGS.names, ...(parsed.settings?.names ?? {}) },
+    }
+    // 老玩家存的牌库没有副本，把旧的「我们的牌」文本合进默认库迁移过来。
+    const deck = isDeck(parsed.deck)
+      ? parsed.deck
+      : mergeDecks(DEFAULT_DECK, parseCustomCards(settings.customCardsText).cards)
     return {
-      settings: { ...DEFAULT_SETTINGS, ...(parsed.settings ?? {}), names: { ...DEFAULT_SETTINGS.names, ...(parsed.settings?.names ?? {}) } },
+      settings,
       game: parsed.game && parsed.game.version === 1 ? parsed.game : null,
+      deck,
     }
   } catch {
-    return { settings: DEFAULT_SETTINGS, game: null }
+    return { settings: DEFAULT_SETTINGS, game: null, deck: DEFAULT_DECK }
   }
 }
 
 export default function App() {
-  const [{ settings, game }, setPersisted] = useState<Persisted>(load)
+  const [{ settings, game, deck }, setPersisted] = useState<Persisted>(load)
   const [error, setError] = useState<string | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
-
-  const customParsed = useMemo(() => parseCustomCards(settings.customCardsText), [settings.customCardsText])
-  const deck = useMemo(() => mergeDecks(DEFAULT_DECK, customParsed.cards), [customParsed])
+  const [libraryOpen, setLibraryOpen] = useState(false)
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ settings, game }))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ settings, game, deck }))
     } catch {
       // 存不下就存不下，牌局照玩
     }
-  }, [settings, game])
+  }, [settings, game, deck])
 
   function setGame(next: GameState | null) {
     setPersisted((p) => ({ ...p, game: next }))
@@ -78,6 +94,10 @@ export default function App() {
 
   function setSettings(patch: Partial<Settings>) {
     setPersisted((p) => ({ ...p, settings: { ...p.settings, ...patch } }))
+  }
+
+  function setDeck(next: Deck) {
+    setPersisted((p) => ({ ...p, deck: next }))
   }
 
   function run(fn: () => GameState | null) {
@@ -101,6 +121,11 @@ export default function App() {
     reset: () => run(() => null),
   }
 
+  const openLibrary = () => {
+    setSettingsOpen(false)
+    setLibraryOpen(true)
+  }
+
   return (
     <div className="app">
       <Table
@@ -110,6 +135,7 @@ export default function App() {
         error={error}
         actions={actions}
         onOpenSettings={() => setSettingsOpen(true)}
+        onOpenLibrary={openLibrary}
       />
       {settingsOpen && (
         <div className="sheet-backdrop" onClick={() => setSettingsOpen(false)}>
@@ -131,23 +157,15 @@ export default function App() {
               <input type="checkbox" checked={settings.wildEnabled} onChange={(e) => setSettings({ wildEnabled: e.target.checked })} />
               抽牌池混入变数牌（下一局生效）
             </label>
-            <label>
-              我们的牌（一行一张：档位 类型 文案，立刻进抽牌池）
-              <textarea
-                value={settings.customCardsText}
-                rows={5}
-                placeholder={'例：\n3 大冒险 用嘴解开对方一颗扣子。\n5 真心话 今晚最想从哪一步开始？'}
-                onChange={(e) => setSettings({ customCardsText: e.target.value })}
-              />
-            </label>
-            <p className="hint">
-              已识别 {customParsed.cards.length} 张{customParsed.skipped > 0 ? `，${customParsed.skipped} 行没看懂（格式：档位1-5 真心话/大冒险 文案）` : ''}。
-              想分享给别人：全选这段文本发过去，对方粘贴进同一个框就行。
-            </p>
+            <div className="cardlib-entry">
+              <span>牌库：查看、修改、增删全部 {deck.cards.length} 张牌，改动立刻进抽牌池，只存在本机。导出成文本发给对方，也能导入对方的牌。</span>
+              <button type="button" className="btn small" onClick={openLibrary}>打开牌库</button>
+            </div>
             <button type="submit" className="btn btn-primary">好了</button>
           </form>
         </div>
       )}
+      {libraryOpen && <CardLibrary deck={deck} onChange={setDeck} onClose={() => setLibraryOpen(false)} />}
     </div>
   )
 }

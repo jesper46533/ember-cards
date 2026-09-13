@@ -5,3 +5,10 @@ worker/worker-configuration.d.ts
 worker/.wrangler/
 *.log
 .DS_Store
+
+# Capacitor / Android 本地构建产物（工程本身入库，构建缓存不入库）
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/capacitor.config.json

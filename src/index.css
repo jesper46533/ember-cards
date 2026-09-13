@@ -106,3 +106,29 @@ button:disabled { cursor: wait; opacity: 0.55; }
 .sheet input[type="text"], .sheet input:not([type]) { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font: inherit; font-size: 14px; background: #fff; }
 .sheet textarea { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font: inherit; font-size: 13px; background: #fff; resize: vertical; }
 .sheet .hint { margin: -6px 0 0; text-align: left; }
+
+/* —— 牌库 —— */
+.cardlib-entry { display: grid; gap: 8px; font-size: 12px; color: var(--ink-soft); }
+.cardlib { max-height: 94vh; overflow-y: auto; gap: 12px; }
+.cardlib-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.cardlib-head h2 { margin: 0; font-size: 16px; }
+.cardlib-head .muted { margin-top: 4px; font-size: 11px; }
+.cardlib-search { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font: inherit; font-size: 14px; background: #fff; }
+.cardlib-filters { display: grid; gap: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cardlib-list { display: grid; gap: 10px; }
+.cardlib-row { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: start; padding: 10px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,0.75); }
+.cardlib-badges { display: flex; flex-direction: column; gap: 4px; width: 52px; }
+.badge { display: inline-block; padding: 2px 6px; border: 1px solid var(--line); border-radius: 999px; font-size: 10px; color: var(--ink-soft); background: #fff; text-align: center; }
+.badge-own { border-color: #d4527a; color: #d4527a; }
+.cardlib-edit { width: 100%; resize: vertical; min-height: 44px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; font: inherit; font-size: 13px; background: #fff; line-height: 1.5; }
+.danger { color: #b23a4e; }
+.cardlib-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.cardlib-add { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; border: 1px dashed var(--line); border-radius: 14px; }
+.cardlib-add select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; font: inherit; font-size: 13px; background: #fff; }
+.cardlib-add textarea { grid-column: 1 / -1; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font: inherit; font-size: 13px; background: #fff; resize: vertical; }
+.cardlib-add .btn { grid-column: 1 / -1; }
+.cardlib-io { display: grid; gap: 8px; padding: 10px; border: 1px dashed var(--line); border-radius: 14px; }
+.cardlib-io .hint { margin: 0; text-align: left; }
+.cardlib-io textarea { padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font: inherit; font-size: 13px; background: #fff; resize: vertical; }
+.cardlib-io-btns { display: flex; gap: 8px; }

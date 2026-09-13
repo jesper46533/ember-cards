@@ -25,9 +25,10 @@ interface Props {
   error: string | null
   actions: TableActions
   onOpenSettings(): void
+  onOpenLibrary(): void
 }
 
-export default function Table({ game, deck, settings, error, actions, onOpenSettings }: Props) {
+export default function Table({ game, deck, settings, error, actions, onOpenSettings, onOpenLibrary }: Props) {
   const [revealed, setRevealed] = useState(Boolean(game?.currentCard))
   const [busy, setBusy] = useState(false)
   const [decreeDraft, setDecreeDraft] = useState('')
@@ -59,7 +60,7 @@ export default function Table({ game, deck, settings, error, actions, onOpenSett
   if (!game || game.stopped) {
     return (
       <section className="table">
-        <Header title={game?.stopped ? '这局停下了' : '这一局，想怎么玩？'} onOpenSettings={onOpenSettings} />
+        <Header title={game?.stopped ? '这局停下了' : '这一局，想怎么玩？'} onOpenSettings={onOpenSettings} onOpenLibrary={onOpenLibrary} />
         <div className="mode-picker">
           <button type="button" className="mode-card" style={{ background: TIER_THEMES[0].background, color: TIER_THEMES[0].text, borderColor: TIER_THEMES[0].text }} onClick={() => actions.newGame('slow')}>
             <strong>慢炖局</strong>
@@ -90,6 +91,7 @@ export default function Table({ game, deck, settings, error, actions, onOpenSett
       <Header
         title={`${game.mode === 'duel' ? '对战局' : '慢炖局'} · 轮到${name(game.turn)}`}
         onOpenSettings={onOpenSettings}
+        onOpenLibrary={onOpenLibrary}
         onNewGame={actions.reset}
       />
 
@@ -257,7 +259,7 @@ export default function Table({ game, deck, settings, error, actions, onOpenSett
   )
 }
 
-function Header({ title, onOpenSettings, onNewGame }: { title: string; onOpenSettings(): void; onNewGame?(): void }) {
+function Header({ title, onOpenSettings, onOpenLibrary, onNewGame }: { title: string; onOpenSettings(): void; onOpenLibrary(): void; onNewGame?(): void }) {
   return (
     <div className="header">
       <div>
@@ -266,6 +268,7 @@ function Header({ title, onOpenSettings, onNewGame }: { title: string; onOpenSet
       </div>
       <div className="header-actions">
         {onNewGame && <button type="button" className="link" onClick={onNewGame}>新一局</button>}
+        <button type="button" className="link" onClick={onOpenLibrary}>牌库</button>
         <button type="button" className="link" onClick={onOpenSettings}>设置</button>
       </div>
     </div>

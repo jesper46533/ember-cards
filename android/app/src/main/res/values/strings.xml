@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">余温</string>
+    <string name="title_activity_main">余温</string>
+    <string name="package_name">com.yuwen.ember</string>
+    <string name="custom_url_scheme">com.yuwen.ember</string>
+</resources>
